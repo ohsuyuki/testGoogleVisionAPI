@@ -6,51 +6,50 @@ require "thor"
 require "pry"
 
 def center(bounding_poly)
-  return {x: (bouding_poly[0].x + bouding_poly[1].x) / 2, y: (bouding_poly[0].y + bouding_poly[2].y) / 2}
+  return {x: (bounding_poly[0].x + bounding_poly[1].x) / 2, y: (bounding_poly[0].y + bounding_poly[2].y) / 2}
 end
 
 def contains(bounding, coord)
-  # bounding[:top_left][:x] <= coord.x && bounding[:bottom_right][:y] 
+  return (bounding[:top_left][:x] <= coord[:x] && coord[:x] <= bounding[:bottom_right][:x]) && (bounding[:top_left][:y] <= coord[:y] && coord[:y] <= bounding[:bottom_right][:y])
 end
 
 document_layout = {
   name: {
     bounding: {
-      top_left: {x: 0, y: 0},
-      bottom_right: {x: 0, y: 0}
+      top_left: {x: 68, y: 16},
+      bottom_right: {x: 430, y: 50}
     },
     text: ''
   },
   address: {
     bounding: {
-      top_left: {x: 0, y: 0},
-      bottom_right: {x: 0, y: 0}
+      top_left: {x: 68, y: 80},
+      bottom_right: {x: 666, y: 130}
     },
     text: ''
   }
 }
 
-image_path = './resources/sample_license.jpg'
+# image_path = './resources/sample_license.jpg'
+image_path = './resources/sample_license_osu.jpg'
 
-# image_annotator = Google::Cloud::Vision::ImageAnnotator
 image_annotator = Google::Cloud::Vision.image_annotator
 
-# [START vision_fulltext_detection_migration]
-response = image_annotator.document_text_detection image: image_path
+response = image_annotator.document_text_detection image: image_path, image_context: {language_hints: [:ja]}
 
-# text = ""
 is_first = true
 response.responses.each do |res|
   res.text_annotations.each do |annotation|
     if is_first
       is_first = false
+      # puts annotation.description
       next
     end
 
-    # text << annotation.description
-    c = center(annotation.bounding_poly)
+    c = center(annotation.bounding_poly.vertices)
     document_layout.each do |key, value|
       if contains(value[:bounding], c)
+        next if ['|'].include?(annotation.description)
         value[:text] << annotation.description
         break
       end
@@ -59,11 +58,6 @@ response.responses.each do |res|
   end
 end
 
-# puts text
-
 document_layout.each do |key, value|
   puts "#{key}: #{value[:text]}"
 end
-
-# [END vision_fulltext_detection_migration]
-# [END vision_fulltext_detection]
