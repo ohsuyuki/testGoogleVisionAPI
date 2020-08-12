@@ -6,23 +6,23 @@ require "thor"
 require "pry"
 
 def center(bounding_poly)
-  return {x: 0, y: 0}
+  return {x: (bouding_poly[0].x + bouding_poly[1].x) / 2, y: (bouding_poly[0].y + bouding_poly[2].y) / 2}
 end
 
-def contains(boundings, coord)
-  return true
+def contains(bounding, coord)
+  # bounding[:top_left][:x] <= coord.x && bounding[:bottom_right][:y] 
 end
 
 document_layout = {
   name: {
-    boundings: {
+    bounding: {
       top_left: {x: 0, y: 0},
       bottom_right: {x: 0, y: 0}
     },
     text: ''
   },
   address: {
-    boundings: {
+    bounding: {
       top_left: {x: 0, y: 0},
       bottom_right: {x: 0, y: 0}
     },
@@ -50,7 +50,7 @@ response.responses.each do |res|
     # text << annotation.description
     c = center(annotation.bounding_poly)
     document_layout.each do |key, value|
-      if contains(value[:boundings], c)
+      if contains(value[:bounding], c)
         value[:text] << annotation.description
         break
       end
